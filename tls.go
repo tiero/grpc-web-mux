@@ -8,7 +8,8 @@ import (
 	"google.golang.org/grpc"
 )
 
-// TLSOptions ...
+// TLSOptions holds the address where to listen for TCP packets and
+// defines the domain for which we need to obtain and renew a TLS cerficate
 type TLSOptions struct {
 	Address string
 	Domain  string

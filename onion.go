@@ -12,7 +12,8 @@ import (
 	"google.golang.org/grpc"
 )
 
-// OnionOptions defines options of onion service
+// OnionOptions defines options of onion service.
+// PrivateKey is a base64 blob, if not present, a ED25519 key is generated for OnionV3.
 // DataDir is the directory used by Tor. If it is empty, a temporary
 // directory is created in TempDataDirBase.
 // TempDataDirBase is the parent directory that a temporary data directory
@@ -21,7 +22,7 @@ import (
 type OnionOptions struct {
 	// The port wich the onion service will listen on
 	Port int
-	//PrivateKey is a base64 blob
+	//PrivateKey is a base64 blob. If not present, a key is generated based
 	PrivateKey string
 	// DataDir defines where to store temporary files for the Onion service. If empty will be created one in the path of the process
 	DataDir string
@@ -29,7 +30,7 @@ type OnionOptions struct {
 	DebugWriter io.Writer
 }
 
-// NewMuxWithOnion returns a *Mux publishing an Onion Service with the given private key
+// NewMuxWithOnion returns a *Mux publishing an V3 Onion Service with the given private key
 // and creating an empty datadir in the current working directory.
 // This will take couple of minutes to spin up, so be patient.
 func NewMuxWithOnion(grpcServer *grpc.Server, opts OnionOptions) (*Mux, error) {

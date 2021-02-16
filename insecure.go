@@ -6,13 +6,13 @@ import (
 	"google.golang.org/grpc"
 )
 
-// InsecureOptions ...
+// InsecureOptions holds the address where to listen for TCP packets
 type InsecureOptions struct {
 	Address string
 }
 
-// NexMuxWithInsecure returns a clear-text *Mux. Use only for development.
-func NexMuxWithInsecure(grpcServer *grpc.Server, opts InsecureOptions) (*Mux, error) {
+// NewMuxWithInsecure returns a clear-text *Mux. Use only for development.
+func NewMuxWithInsecure(grpcServer *grpc.Server, opts InsecureOptions) (*Mux, error) {
 
 	lis, err := net.Listen("tcp", opts.Address)
 	if err != nil {

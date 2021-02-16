@@ -1,3 +1,5 @@
+// Package mux helps multiplexing gRPC and gRPC Web on the same port, switching on HTTP Content-Type Header.
+// It features insecure clear-text, TLS termination and Onion service
 package mux
 
 import (
@@ -10,15 +12,14 @@ import (
 	"google.golang.org/grpc"
 )
 
-// Mux is the entrypoint for serving gRPC and gRPC Web on the same port, switching based on HTTP Content-Type Header.
-// It features insecure clear-text, TLS termination and Onion Hidden service
+// Mux holds a net.Listener and a *grpc.Server
 type Mux struct {
 	listener   net.Listener
 	grpcServer *grpc.Server
 }
 
 // Serve multiplexes on the same port both gRPC and gRPC Web
-func (m *Mux) Serve() error {
+func (m *Mux) Serve() {
 	mux := cmux.New(m.listener)
 	grpcL := mux.MatchWithWriters(cmux.HTTP2MatchHeaderFieldPrefixSendSettings("content-type", "application/grpc"))
 	httpL := mux.Match(cmux.HTTP1Fast())
@@ -37,7 +38,6 @@ func (m *Mux) Serve() error {
 	}))
 
 	go mux.Serve()
-	return nil
 }
 
 func isValidRequest(req *http.Request) bool {
