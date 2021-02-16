@@ -18,8 +18,8 @@ type Mux struct {
 	GrpcServer *grpc.Server
 }
 
-// Serve multiplexes on the same port both gRPC and gRPC Web
-func (m *Mux) Serve() {
+// Serve starts multiplexing gRPC and gRPC Web on the same port. Serve blocks and perhaps should be invoked concurrently within a go routine.
+func (m *Mux) Serve() error {
 	mux := cmux.New(m.Listener)
 	grpcL := mux.MatchWithWriters(cmux.HTTP2MatchHeaderFieldPrefixSendSettings("content-type", "application/grpc"))
 	httpL := mux.Match(cmux.HTTP1Fast())
@@ -37,7 +37,7 @@ func (m *Mux) Serve() {
 		}
 	}))
 
-	go mux.Serve()
+	return mux.Serve()
 }
 
 func isValidRequest(req *http.Request) bool {

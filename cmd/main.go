@@ -3,14 +3,13 @@ package main
 import (
 	"context"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/tiero/grpc-web-mux/pkg/mux"
 	"google.golang.org/grpc"
 	pb "google.golang.org/grpc/examples/helloworld/helloworld"
-)
-
-const (
-	port = ":50051"
 )
 
 // server is used to implement helloworld.GreeterServer.
@@ -25,11 +24,9 @@ func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloRe
 }
 
 func main() {
-	s := grpc.NewServer()
-
-	pb.RegisterGreeterServer(s, &server{})
 
 	myGrpcServer := grpc.NewServer()
+	pb.RegisterGreeterServer(myGrpcServer, &server{})
 
 	insecureMux, err := mux.NewMuxWithInsecure(
 		myGrpcServer,
@@ -39,6 +36,13 @@ func main() {
 		log.Panic(err)
 	}
 
+	log.Printf("Serving mux at %s\n", insecureMux.Listener.Addr().String())
 	insecureMux.Serve()
-	log.Println(insecureMux.Listener.Addr().String())
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGINT)
+	<-sigChan
+
+	log.Println("shutting down mux")
+
 }
