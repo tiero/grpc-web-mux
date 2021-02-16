@@ -19,5 +19,5 @@ func NewMuxWithInsecure(grpcServer *grpc.Server, opts InsecureOptions) (*Mux, er
 		return nil, err
 	}
 
-	return &Mux{listener: lis, grpcServer: grpcServer}, nil
+	return &Mux{Listener: lis, GrpcServer: grpcServer}, nil
 }

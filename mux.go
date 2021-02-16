@@ -14,23 +14,23 @@ import (
 
 // Mux holds a net.Listener and a *grpc.Server
 type Mux struct {
-	listener   net.Listener
-	grpcServer *grpc.Server
+	Listener   net.Listener
+	GrpcServer *grpc.Server
 }
 
 // Serve multiplexes on the same port both gRPC and gRPC Web
 func (m *Mux) Serve() {
-	mux := cmux.New(m.listener)
+	mux := cmux.New(m.Listener)
 	grpcL := mux.MatchWithWriters(cmux.HTTP2MatchHeaderFieldPrefixSendSettings("content-type", "application/grpc"))
 	httpL := mux.Match(cmux.HTTP1Fast())
 
 	grpcWebServer := grpcweb.WrapServer(
-		m.grpcServer,
+		m.GrpcServer,
 		grpcweb.WithCorsForRegisteredEndpointsOnly(false),
 		grpcweb.WithOriginFunc(func(origin string) bool { return true }),
 	)
 
-	go m.grpcServer.Serve(grpcL)
+	go m.GrpcServer.Serve(grpcL)
 	go http.Serve(httpL, http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 		if isValidRequest(req) {
 			grpcWebServer.ServeHTTP(resp, req)

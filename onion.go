@@ -66,7 +66,7 @@ func NewMuxWithOnion(grpcServer *grpc.Server, opts OnionOptions) (*Mux, error) {
 	defer onion.Close()
 
 	return &Mux{
-		listener:   onion,
-		grpcServer: grpcServer,
+		Listener:   onion,
+		GrpcServer: grpcServer,
 	}, nil
 }

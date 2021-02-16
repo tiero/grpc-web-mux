@@ -34,5 +34,5 @@ func NewMuxWithTLS(grpcServer *grpc.Server, opts TLSOptions) (*Mux, error) {
 		return nil, err
 	}
 
-	return &Mux{listener: lis, grpcServer: grpcServer}, nil
+	return &Mux{Listener: lis, GrpcServer: grpcServer}, nil
 }
