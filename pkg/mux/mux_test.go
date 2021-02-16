@@ -3,7 +3,7 @@ package mux_test
 import (
 	"log"
 
-	mux "github.com/tiero/grpc-web-mux"
+	"github.com/tiero/grpc-web-mux/pkg/mux"
 	"google.golang.org/grpc"
 )
 

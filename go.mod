@@ -16,10 +16,9 @@ require (
 	github.com/rs/cors v1.7.0 // indirect
 	github.com/soheilhy/cmux v0.1.4
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
-	golang.org/x/tools v0.0.0-20200117012304-6edc0a871e69 // indirect
-	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	golang.org/x/tools v0.1.0 // indirect
 	google.golang.org/grpc v1.35.0
-	google.golang.org/grpc/examples v0.0.0-20210212222430-425d405f3928 // indirect
-	gopkg.in/yaml.v2 v2.3.0 // indirect
+	google.golang.org/grpc/examples v0.0.0-20210212222430-425d405f3928
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 	nhooyr.io/websocket v1.8.6 // indirect
 )
