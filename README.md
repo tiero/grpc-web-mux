@@ -9,6 +9,11 @@ Multiplex gRPC and gRPC Web on the same port, switching on HTTP Content-Type Hea
 * Onion hidden service via [libtor](https://github.com/ipsn/go-libtor) 
 
 
+## Install
+
+```sh
+$ go install github.com/tiero/grpc-web-mux@latest
+```
 
 ## Usage
 
