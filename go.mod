@@ -23,4 +23,4 @@ require (
 	nhooyr.io/websocket v1.8.6 // indirect
 )
 
-#replace github.com/tiero/grpc-web-mux/pkg/mux => ./pkg/mux
+//replace github.com/tiero/grpc-web-mux/pkg/mux => ./pkg/mux
