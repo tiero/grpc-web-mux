@@ -18,27 +18,26 @@ Multiplex gRPC and gRPC Web on the same port, switching on HTTP Content-Type Hea
 package main
 
 import (
-	"log"
+  "log"
 
-	mux "github.com/tiero/grpc-web-mux"
-	"google.golang.org/grpc"
+  mux "github.com/tiero/grpc-web-mux"
+  "google.golang.org/grpc"
 )
 
 func main() {
-
   myGrpcServer := grpc.NewServer()
   
   //Register your gRPC handler
 
-	insecureMux, err := mux.NewMuxWithInsecure(
-		myGrpcServer,
-		mux.InsecureOptions{Address: ":8080"},
-	)
-	if err != nil {
-		log.Panic(err)
-	}
+  insecureMux, err := mux.NewMuxWithInsecure(
+    myGrpcServer,
+    mux.InsecureOptions{Address: ":8080"},
+  )
+  if err != nil {
+    log.Panic(err)
+  }
 
-	insecureMux.Serve()
+  insecureMux.Serve()
 }
 
 ```
@@ -49,30 +48,30 @@ func main() {
 package main
 
 import (
-	"log"
-
-	mux "github.com/tiero/grpc-web-mux"
-	"google.golang.org/grpc"
+  "log"
+  
+  mux "github.com/tiero/grpc-web-mux"
+  "google.golang.org/grpc"
 )
 
 func main() {
 
-	myGrpcServer := grpc.NewServer()
+  myGrpcServer := grpc.NewServer()
 
   //Register your gRPC handler
 
-	tlsMux, err := mux.NewMuxWithTLS(
-		myGrpcServer,
-		mux.TLSOptions{
-			Address: ":9945",
-			Domain:  "mydomain.com",
-		},
-	)
-	if err != nil {
-		log.Panic(err)
-	}
+  tlsMux, err := mux.NewMuxWithTLS(
+    myGrpcServer,
+    mux.TLSOptions{
+      Address: ":9945",
+      Domain:  "mydomain.com",
+    },
+  )
+  if err != nil {
+    log.Panic(err)
+  }
 
-	tlsMux.Serve()
+  tlsMux.Serve()
 }
 
 ```
@@ -83,10 +82,10 @@ func main() {
 package main
 
 import (
-	"log"
+  "log"
 
-	mux "github.com/tiero/grpc-web-mux"
-	"google.golang.org/grpc"
+  mux "github.com/tiero/grpc-web-mux"
+  "google.golang.org/grpc"
 )
 
 func main() {
@@ -95,18 +94,18 @@ func main() {
 
   //Register your gRPC handler
 
-	onionMux, err := mux.NewMuxWithOnion(
-		myGrpcServer,
-		mux.OnionOptions{
-			Port:       80,
-			PrivateKey: "myBase64SerializedPrivateKey",
-		},
-	)
-	if err != nil {
-		log.Panic(err)
-	}
+  onionMux, err := mux.NewMuxWithOnion(
+	  myGrpcServer,
+	  mux.OnionOptions{
+		  Port:       80,
+		  PrivateKey: "myBase64SerializedPrivateKey",
+	  },
+  )
+  if err != nil {
+    log.Panic(err)
+  }
 
-	onionMux.Serve()
+  onionMux.Serve()
 }
 
 ```
