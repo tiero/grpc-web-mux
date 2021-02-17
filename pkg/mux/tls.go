@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 
 	"github.com/caddyserver/certmagic"
-	"golang.org/x/net/http2"
+	"github.com/soheilhy/cmux"
 	"google.golang.org/grpc"
 )
 
@@ -27,12 +27,13 @@ func NewMuxWithTLS(grpcServer *grpc.Server, opts TLSOptions) (*Mux, error) {
 
 	const requiredCipher = tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
 	tlsConfig.CipherSuites = []uint16{requiredCipher}
-	tlsConfig.NextProtos = []string{"http/1.1", http2.NextProtoTLS, "h2-14"} // h2-14 is just for compatibility. will be eventually removed.
+	tlsConfig.NextProtos = []string{"http/1.1", "h2", "h2-14"} // h2-14 is just for compatibility. will be eventually removed.
 
 	lis, err := tls.Listen("tcp", opts.Address, tlsConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Mux{Listener: lis, GrpcServer: grpcServer}, nil
+	mux := cmux.New(lis)
+	return &Mux{mux: mux, Listener: lis, GrpcServer: grpcServer}, nil
 }

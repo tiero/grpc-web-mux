@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"log"
+	"net/http"
+
 	"os"
 	"os/signal"
 	"syscall"
@@ -28,18 +30,39 @@ func main() {
 	myGrpcServer := grpc.NewServer()
 	pb.RegisterGreeterServer(myGrpcServer, &server{})
 
-	insecureMux, err := mux.NewMuxWithInsecure(
-		myGrpcServer,
-		mux.InsecureOptions{Address: ":8080"},
-	)
+	var serverMux *mux.Mux
+	var err error
+	if len(os.Args) > 1 {
+		serverMux, err = mux.NewMuxWithOnion(
+			myGrpcServer,
+			mux.OnionOptions{
+				Port:       80,
+				DataDir:    "onion_service_datadir",
+				PrivateKey: os.Args[1],
+			},
+		)
+	} else {
+		serverMux, err = mux.NewMuxWithInsecure(
+			myGrpcServer,
+			mux.InsecureOptions{Address: ":8080"},
+		)
+	}
+
 	if err != nil {
 		log.Panic(err)
 	}
 
-	log.Printf("Serving mux at %s\n", insecureMux.Listener.Addr().String())
+	serverMux.WithExtraHTTP1(
+		http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+			rw.Write([]byte("Hello Onion!"))
+		}),
+		nil,
+	)
 
-	defer insecureMux.Close()
-	insecureMux.Serve()
+	log.Printf("Serving mux at %s\n", serverMux.Listener.Addr().String())
+
+	defer serverMux.Close()
+	serverMux.Serve()
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGINT)
