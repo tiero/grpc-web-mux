@@ -19,6 +19,9 @@ func ExampleNewMuxWithInsecure() {
 		log.Panic(err)
 	}
 
+	log.Printf("Serving mux at %s\n", insecureMux.Listener.Addr().String())
+
+	defer insecureMux.Close()
 	insecureMux.Serve()
 }
 
@@ -37,6 +40,9 @@ func ExampleNewMuxWithTLS() {
 		log.Panic(err)
 	}
 
+	log.Printf("Serving mux at %s\n", tlsMux.Listener.Addr().String())
+
+	defer tlsMux.Close()
 	tlsMux.Serve()
 }
 
@@ -55,5 +61,8 @@ func ExampleNewMuxWithOnion() {
 		log.Panic(err)
 	}
 
+	log.Printf("Serving mux at %s\n", onionMux.Listener.Addr().String())
+
+	defer onionMux.Close()
 	onionMux.Serve()
 }

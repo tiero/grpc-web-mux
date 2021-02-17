@@ -7,15 +7,18 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/cretz/bine/tor"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/soheilhy/cmux"
 	"google.golang.org/grpc"
 )
 
-// Mux holds a net.Listener and a *grpc.Server
+// Mux holds a net.Listener, a *grpc.Server and if onion service a *tor.Tor client
 type Mux struct {
 	Listener   net.Listener
 	GrpcServer *grpc.Server
+
+	torClient *tor.Tor
 }
 
 // Serve starts multiplexing gRPC and gRPC Web on the same port. Serve blocks and perhaps should be invoked concurrently within a go routine.
@@ -38,6 +41,14 @@ func (m *Mux) Serve() error {
 	}))
 
 	return mux.Serve()
+}
+
+// Close closes the TCP listener connection and in case of onion service it will also halt the tor client.
+func (m *Mux) Close() {
+	if m.torClient != nil {
+		m.torClient.Close()
+	}
+	m.Listener.Close()
 }
 
 func isValidRequest(req *http.Request) bool {

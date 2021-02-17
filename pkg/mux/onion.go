@@ -35,7 +35,7 @@ type OnionOptions struct {
 // This will take couple of minutes to spin up, so be patient.
 func NewMuxWithOnion(grpcServer *grpc.Server, opts OnionOptions) (*Mux, error) {
 	// Starting tor please wait a bit...
-	t, err := tor.Start(nil, &tor.StartConf{
+	torClient, err := tor.Start(nil, &tor.StartConf{
 		ProcessCreator: libtor.Creator,
 		DataDir:        opts.DataDir,
 		DebugWriter:    opts.DebugWriter,
@@ -43,7 +43,6 @@ func NewMuxWithOnion(grpcServer *grpc.Server, opts OnionOptions) (*Mux, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to start tor: %v", err)
 	}
-	defer t.Close()
 
 	// Wait at most a few minutes to publish the service
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
@@ -55,7 +54,7 @@ func NewMuxWithOnion(grpcServer *grpc.Server, opts OnionOptions) (*Mux, error) {
 		return nil, fmt.Errorf("Failed to deserialize private key: %v", err)
 	}
 	// Create an onion service to listen on any port but show as 80
-	onion, err := t.Listen(ctx, &tor.ListenConf{
+	onion, err := torClient.Listen(ctx, &tor.ListenConf{
 		RemotePorts: []int{opts.Port},
 		Version3:    true,
 		Key:         privKey.PrivateKey(),
@@ -63,10 +62,10 @@ func NewMuxWithOnion(grpcServer *grpc.Server, opts OnionOptions) (*Mux, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create onion service: %v", err)
 	}
-	defer onion.Close()
 
 	return &Mux{
 		Listener:   onion,
 		GrpcServer: grpcServer,
+		torClient:  torClient,
 	}, nil
 }

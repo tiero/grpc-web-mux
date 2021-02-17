@@ -12,7 +12,7 @@ Multiplex gRPC and gRPC Web on the same port, switching on HTTP Content-Type Hea
 ## Install
 
 ```sh
-$ go install github.com/tiero/grpc-web-mux@latest
+$ go get github.com/tiero/grpc-web-mux@latest
 ```
 
 ## Usage
@@ -100,11 +100,11 @@ func main() {
   //Register your gRPC handler
 
   onionMux, err := mux.NewMuxWithOnion(
-	  myGrpcServer,
-	  mux.OnionOptions{
-		  Port:       80,
-		  PrivateKey: "myBase64SerializedPrivateKey",
-	  },
+    myGrpcServer,
+    mux.OnionOptions{
+      Port:       80,
+      PrivateKey: "myBase64SerializedPrivateKey",
+    },
   )
   if err != nil {
     log.Panic(err)

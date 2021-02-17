@@ -37,6 +37,8 @@ func main() {
 	}
 
 	log.Printf("Serving mux at %s\n", insecureMux.Listener.Addr().String())
+
+	defer insecureMux.Close()
 	insecureMux.Serve()
 
 	sigChan := make(chan os.Signal, 1)
