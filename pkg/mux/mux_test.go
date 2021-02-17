@@ -2,6 +2,7 @@ package mux_test
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/tiero/grpc-web-mux/pkg/mux"
 	"google.golang.org/grpc"
@@ -65,4 +66,30 @@ func ExampleNewMuxWithOnion() {
 
 	defer onionMux.Close()
 	onionMux.Serve()
+}
+
+func ExampleWithExtraHTTP1() {
+
+	myGrpcServer := grpc.NewServer()
+
+	insecureMux, err := mux.NewMuxWithInsecure(
+		myGrpcServer,
+		mux.InsecureOptions{Address: ":8080"},
+	)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	insecureMux.WithExtraHTTP1(
+		http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+			rw.Write([]byte("Hello Insecure!"))
+		}),
+		nil,
+	)
+
+	log.Printf("Serving mux at %s\n", insecureMux.Listener.Addr().String())
+
+	defer insecureMux.Close()
+	insecureMux.Serve()
+
 }
