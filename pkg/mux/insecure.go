@@ -3,6 +3,7 @@ package mux
 import (
 	"net"
 
+	"github.com/soheilhy/cmux"
 	"google.golang.org/grpc"
 )
 
@@ -19,5 +20,6 @@ func NewMuxWithInsecure(grpcServer *grpc.Server, opts InsecureOptions) (*Mux, er
 		return nil, err
 	}
 
-	return &Mux{Listener: lis, GrpcServer: grpcServer}, nil
+	mux := cmux.New(lis)
+	return &Mux{mux: mux, Listener: lis, GrpcServer: grpcServer}, nil
 }

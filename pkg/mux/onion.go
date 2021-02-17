@@ -9,6 +9,7 @@ import (
 	"github.com/cretz/bine/control"
 	"github.com/cretz/bine/tor"
 	"github.com/ipsn/go-libtor"
+	"github.com/soheilhy/cmux"
 	"google.golang.org/grpc"
 )
 
@@ -63,7 +64,9 @@ func NewMuxWithOnion(grpcServer *grpc.Server, opts OnionOptions) (*Mux, error) {
 		return nil, fmt.Errorf("Failed to create onion service: %v", err)
 	}
 
+	mux := cmux.New(onion)
 	return &Mux{
+		mux:        mux,
 		Listener:   onion,
 		GrpcServer: grpcServer,
 		torClient:  torClient,
