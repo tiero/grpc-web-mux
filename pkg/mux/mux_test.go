@@ -68,7 +68,7 @@ func ExampleNewMuxWithOnion() {
 	onionMux.Serve()
 }
 
-func ExampleWithExtraHTTP1() {
+func ExampleMux_WithExtraHTTP1() {
 
 	myGrpcServer := grpc.NewServer()
 
