@@ -68,7 +68,7 @@ func ExampleNewMuxWithOnion() {
 	onionMux.Serve()
 }
 
-func ExampleMux_WithExtraHTTP1() {
+func ExampleMux_WithHTTP1Handler() {
 
 	myGrpcServer := grpc.NewServer()
 
@@ -80,7 +80,7 @@ func ExampleMux_WithExtraHTTP1() {
 		log.Panic(err)
 	}
 
-	insecureMux.WithExtraHTTP1(
+	insecureMux.WithHTTP1Handler(
 		http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 			rw.Write([]byte("Hello Insecure!"))
 		}),

@@ -22,19 +22,19 @@ type Mux struct {
 
 	torClient *tor.Tor
 
-	extraServers []*HTTPServer
+	handlerWithContentTypes *HandlerWithContentTypes
 }
 
-// HTTPServer holds a net.Listener and an http.Handler
-type HTTPServer struct {
-	Listener net.Listener
-	Handler  http.Handler
+// HandlerWithContentTypes ...
+type HandlerWithContentTypes struct {
+	Handler      http.Handler
+	ContentTypes []string
 }
 
 // Serve starts multiplexing gRPC and gRPC Web on the same port. Serve blocks and perhaps should be invoked concurrently within a go routine.
 func (m *Mux) Serve() error {
 	grpcL := m.mux.MatchWithWriters(cmux.HTTP2MatchHeaderFieldPrefixSendSettings("content-type", "application/grpc"))
-	httpL := m.mux.Match(cmux.HTTP1Fast())
+	httpL := m.mux.Match(cmux.HTTP1())
 
 	grpcWebServer := grpcweb.WrapServer(
 		m.GrpcServer,
@@ -44,46 +44,27 @@ func (m *Mux) Serve() error {
 
 	go m.GrpcServer.Serve(grpcL)
 	go http.Serve(httpL, http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
-		if isValidRequest(req) {
+		if isValidOptionOrGrpcWebRequest(req) {
 			grpcWebServer.ServeHTTP(resp, req)
+		} else if m.handlerWithContentTypes.hasValidContentType(req) {
+			m.handlerWithContentTypes.Handler.ServeHTTP(resp, req)
 		} else {
 			http.NotFound(resp, req)
 		}
 	}))
 
-	if len(m.extraServers) > 0 {
-		for _, s := range m.extraServers {
-			go http.Serve(s.Listener, s.Handler)
-		}
-	}
-
 	return m.mux.Serve()
 }
 
-// WithExtraHTTP1 adds to the Mux an additional given HTTP1 handler and optional content-type.
-// if contentTypes is nil or empty array, any HTTP1 request will be matched
-// any of the contentTypes sourced MUST be different than `application/grpc-web-text` and `application/grpc-web`
-// because it will have matched before in the grpc-web server
-func (m *Mux) WithExtraHTTP1(handler http.Handler, contentTypes []string) {
-	if contentTypes == nil || len(contentTypes) == 0 {
-		lis := m.mux.Match(cmux.HTTP1())
-
-		m.extraServers = append(m.extraServers, &HTTPServer{
-			Listener: lis,
-			Handler:  handler,
-		})
-		return
+// WithHTTP1Handler adds to the Mux an additional given HTTP1 handler and optional array of content-type to match.
+// if contentTypes is nil or empty array, any HTTP1 request will be matched any of the contentTypes sourced
+// MUST be different than `application/grpc-web-text` and `application/grpc-web` because it will have matched before
+//in the grpc-web server listener
+func (m *Mux) WithHTTP1Handler(handler http.Handler, contentTypes []string) {
+	m.handlerWithContentTypes = &HandlerWithContentTypes{
+		Handler:      handler,
+		ContentTypes: contentTypes,
 	}
-
-	for _, ct := range contentTypes {
-		lis := m.mux.Match(cmux.HTTP1HeaderFieldPrefix("content-type", ct))
-
-		m.extraServers = append(m.extraServers, &HTTPServer{
-			Listener: lis,
-			Handler:  handler,
-		})
-	}
-
 }
 
 // Close closes the TCP listener connection and in case of onion service it will also halt the tor client.
@@ -94,7 +75,22 @@ func (m *Mux) Close() {
 	m.Listener.Close()
 }
 
-func isValidRequest(req *http.Request) bool {
+func (h HandlerWithContentTypes) hasValidContentType(req *http.Request) (found bool) {
+	if len(h.ContentTypes) == 0 || h.ContentTypes == nil {
+		return true
+	}
+
+	for _, c := range h.ContentTypes {
+		if strings.HasPrefix(req.Header.Get("content-type"), c) {
+			found = true
+			break
+		}
+	}
+
+	return
+}
+
+func isValidOptionOrGrpcWebRequest(req *http.Request) bool {
 	return isValidGrpcWebOptionRequest(req) || isValidGrpcWebRequest(req)
 }
 

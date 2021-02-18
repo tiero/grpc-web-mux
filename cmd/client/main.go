@@ -19,19 +19,24 @@ const (
 
 func main() {
 	// Set up a connection to the server.
-	address := defaultAddress
+	var dialOpts []grpc.DialOption = []grpc.DialOption{grpc.WithInsecure()}
+	var address string = defaultAddress
+
 	if len(os.Args) > 1 {
 		address = os.Args[1]
+		dialer, err := proxy.SOCKS5("tcp", "127.0.0.1:9150", nil, nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		dialOpts = append(
+			dialOpts,
+			grpc.WithTimeout(15*time.Second),
+			grpc.WithContextDialer(func(ctx context.Context, addr string) (net.Conn, error) { return dialer.Dial("tcp", addr) }),
+		)
 	}
 
-	dialer, err := proxy.SOCKS5("tcp", "127.0.0.1:9150", nil, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithTimeout(15*time.Second), grpc.WithContextDialer(func(ctx context.Context, addr string) (net.Conn, error) {
-		return dialer.Dial("tcp", addr)
-	}))
+	conn, err := grpc.Dial(address, dialOpts...)
 
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
