@@ -52,11 +52,11 @@ func main() {
 		log.Panic(err)
 	}
 
-	serverMux.WithExtraHTTP1(
+	serverMux.WithHTTP1Handler(
 		http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-			rw.Write([]byte("Hello Onion!"))
+			rw.Write([]byte("Hello my friend!"))
 		}),
-		nil,
+		[]string{"application/json"},
 	)
 
 	log.Printf("Serving mux at %s\n", serverMux.Listener.Addr().String())
