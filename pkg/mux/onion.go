@@ -2,6 +2,7 @@ package mux
 
 import (
 	"context"
+	"crypto"
 	"fmt"
 	"io"
 	"time"
@@ -50,15 +51,19 @@ func NewMuxWithOnion(grpcServer *grpc.Server, opts OnionOptions) (*Mux, error) {
 	defer cancel()
 
 	// PrivKey
-	privKey, err := control.ED25519KeyFromBlob(opts.PrivateKey)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to deserialize private key: %v", err)
+	var privKey crypto.PrivateKey = nil
+	if len(opts.PrivateKey) > 0 {
+		privKeyInfo, err := control.ED25519KeyFromBlob(opts.PrivateKey)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to deserialize private key: %v", err)
+		}
+		privKey = privKeyInfo.PrivateKey()
 	}
 	// Create an onion service to listen on any port but show as 80
 	onion, err := torClient.Listen(ctx, &tor.ListenConf{
 		RemotePorts: []int{opts.Port},
 		Version3:    true,
-		Key:         privKey.PrivateKey(),
+		Key:         privKey,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create onion service: %v", err)

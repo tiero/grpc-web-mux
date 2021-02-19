@@ -30,24 +30,17 @@ func main() {
 	myGrpcServer := grpc.NewServer()
 	pb.RegisterGreeterServer(myGrpcServer, &server{})
 
-	var serverMux *mux.Mux
-	var err error
+	options := mux.OnionOptions{Port: 80}
 	if len(os.Args) > 1 {
-		serverMux, err = mux.NewMuxWithOnion(
-			myGrpcServer,
-			mux.OnionOptions{
-				Port:       80,
-				DataDir:    "onion_service_datadir",
-				PrivateKey: os.Args[1],
-			},
-		)
-	} else {
-		serverMux, err = mux.NewMuxWithInsecure(
-			myGrpcServer,
-			mux.InsecureOptions{Address: ":8080"},
-		)
+		options = mux.OnionOptions{
+			Port:       80,
+			PrivateKey: os.Args[1],
+		}
 	}
-
+	serverMux, err := mux.NewMuxWithOnion(
+		myGrpcServer,
+		options,
+	)
 	if err != nil {
 		log.Panic(err)
 	}
