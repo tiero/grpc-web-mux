@@ -15,11 +15,11 @@ type TLSOptions struct {
 	Domain  string
 }
 
-// NewMuxWithTLS returns a *Mux with TLS termination automatically obtaining the TLS certificate with given domain through CertMagic.
+// NewMuxWithTLS returns a *GrpcWebMux with TLS termination automatically obtaining the TLS certificate with given domain through CertMagic.
 // By default, CertMagic stores assets on the local file system in $HOME/.local/share/certmagic (and honors $XDG_DATA_HOME if set).
 // CertMagic will create the directory if it does not exist.
 //If writes are denied, things will not be happy, so make sure CertMagic can write to it!
-func NewMuxWithTLS(grpcServer *grpc.Server, opts TLSOptions) (*Mux, error) {
+func NewMuxWithTLS(grpcServer *grpc.Server, opts TLSOptions) (*GrpcWebMux, error) {
 	tlsConfig, err := certmagic.TLS([]string{opts.Domain})
 	if err != nil {
 		return nil, err
@@ -35,5 +35,5 @@ func NewMuxWithTLS(grpcServer *grpc.Server, opts TLSOptions) (*Mux, error) {
 	}
 
 	mux := cmux.New(lis)
-	return &Mux{mux: mux, Listener: lis, GrpcServer: grpcServer}, nil
+	return &GrpcWebMux{mux: mux, Listener: lis, GrpcServer: grpcServer}, nil
 }

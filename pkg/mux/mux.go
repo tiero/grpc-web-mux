@@ -14,8 +14,8 @@ import (
 	"google.golang.org/grpc"
 )
 
-// Mux holds a net.Listener, a *grpc.Server and if onion service a *tor.Tor client
-type Mux struct {
+// GrpcWebMux holds a net.Listener, a *grpc.Server and if onion service a *tor.Tor client
+type GrpcWebMux struct {
 	mux        cmux.CMux
 	Listener   net.Listener
 	GrpcServer *grpc.Server
@@ -32,7 +32,7 @@ type HandlerWithContentTypes struct {
 }
 
 // Serve starts multiplexing gRPC and gRPC Web on the same port. Serve blocks and perhaps should be invoked concurrently within a go routine.
-func (m *Mux) Serve() error {
+func (m *GrpcWebMux) Serve() error {
 	grpcL := m.mux.MatchWithWriters(cmux.HTTP2MatchHeaderFieldPrefixSendSettings("content-type", "application/grpc"))
 	httpL := m.mux.Match(cmux.HTTP1())
 
@@ -56,11 +56,11 @@ func (m *Mux) Serve() error {
 	return m.mux.Serve()
 }
 
-// WithHTTP1Handler adds to the Mux an additional given HTTP1 handler and optional array of content-type to match.
+// WithExtraHandler adds to the GrpcWebMux an additional given HTTP1 handler and optional array of content-type to match.
 // if contentTypes is nil or empty array, any HTTP1 request will be matched any of the contentTypes sourced
 // MUST be different than `application/grpc-web-text` and `application/grpc-web` because it will have matched before
 //in the grpc-web server listener
-func (m *Mux) WithHTTP1Handler(handler http.Handler, contentTypes []string) {
+func (m *GrpcWebMux) WithExtraHandler(handler http.Handler, contentTypes []string) {
 	m.handlerWithContentTypes = &HandlerWithContentTypes{
 		Handler:      handler,
 		ContentTypes: contentTypes,
@@ -68,7 +68,7 @@ func (m *Mux) WithHTTP1Handler(handler http.Handler, contentTypes []string) {
 }
 
 // Close closes the TCP listener connection and in case of onion service it will also halt the tor client.
-func (m *Mux) Close() {
+func (m *GrpcWebMux) Close() {
 	if m.torClient != nil {
 		m.torClient.Close()
 	}

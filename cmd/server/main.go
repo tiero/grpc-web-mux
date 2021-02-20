@@ -1,7 +1,7 @@
 package main
 
 import (
-	"context"
+	"flag"
 	"log"
 	"net/http"
 
@@ -11,41 +11,43 @@ import (
 
 	"github.com/tiero/grpc-web-mux/pkg/mux"
 	"google.golang.org/grpc"
-	pb "google.golang.org/grpc/examples/helloworld/helloworld"
+	pb "google.golang.org/grpc/examples/route_guide/routeguide"
 )
 
-// server is used to implement helloworld.GreeterServer.
-type server struct {
-	pb.UnimplementedGreeterServer
-}
-
-// SayHello implements helloworld.GreeterServer
-func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
-	log.Printf("Received: %v", in.GetName())
-	return &pb.HelloReply{Message: "Hello " + in.GetName()}, nil
-}
+var useInsecure = flag.Bool("insecure", false, "if running insecure mux")
 
 func main() {
+	flag.Parse()
 
 	myGrpcServer := grpc.NewServer()
-	pb.RegisterGreeterServer(myGrpcServer, &server{})
+	pb.RegisterRouteGuideServer(myGrpcServer, newServer())
 
-	options := mux.OnionOptions{Port: 80}
-	if len(os.Args) > 1 {
-		options = mux.OnionOptions{
-			Port:       80,
-			PrivateKey: os.Args[1],
+	var err error
+	var serverMux *mux.GrpcWebMux
+	if *useInsecure {
+		serverMux, err = mux.NewMuxWithInsecure(myGrpcServer, mux.InsecureOptions{Address: ":8080"})
+	} else {
+		options := mux.OnionOptions{Port: 80}
+
+		// If an argument is given means we got a private key
+		if len(os.Args) > 1 {
+			options = mux.OnionOptions{
+				Port:       80,
+				PrivateKey: os.Args[1],
+			}
 		}
+
+		serverMux, err = mux.NewMuxWithOnion(
+			myGrpcServer,
+			options,
+		)
 	}
-	serverMux, err := mux.NewMuxWithOnion(
-		myGrpcServer,
-		options,
-	)
+
 	if err != nil {
 		log.Panic(err)
 	}
 
-	serverMux.WithHTTP1Handler(
+	serverMux.WithExtraHandler(
 		http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 			rw.Write([]byte("Hello my friend!"))
 		}),

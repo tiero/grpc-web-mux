@@ -32,10 +32,10 @@ type OnionOptions struct {
 	DebugWriter io.Writer
 }
 
-// NewMuxWithOnion returns a *Mux publishing an V3 Onion Service with the given private key
+// NewMuxWithOnion returns a *GrpcWebMux publishing an V3 Onion Service with the given private key
 // and creating an empty datadir in the current working directory.
 // This will take couple of minutes to spin up, so be patient.
-func NewMuxWithOnion(grpcServer *grpc.Server, opts OnionOptions) (*Mux, error) {
+func NewMuxWithOnion(grpcServer *grpc.Server, opts OnionOptions) (*GrpcWebMux, error) {
 	// Starting tor please wait a bit...
 	torClient, err := tor.Start(nil, &tor.StartConf{
 		ProcessCreator: libtor.Creator,
@@ -70,7 +70,7 @@ func NewMuxWithOnion(grpcServer *grpc.Server, opts OnionOptions) (*Mux, error) {
 	}
 
 	mux := cmux.New(onion)
-	return &Mux{
+	return &GrpcWebMux{
 		mux:        mux,
 		Listener:   onion,
 		GrpcServer: grpcServer,

@@ -12,8 +12,8 @@ type InsecureOptions struct {
 	Address string
 }
 
-// NewMuxWithInsecure returns a clear-text *Mux. Use only for development.
-func NewMuxWithInsecure(grpcServer *grpc.Server, opts InsecureOptions) (*Mux, error) {
+// NewMuxWithInsecure returns a clear-text *GrpcWebMux. Use only for development.
+func NewMuxWithInsecure(grpcServer *grpc.Server, opts InsecureOptions) (*GrpcWebMux, error) {
 
 	lis, err := net.Listen("tcp", opts.Address)
 	if err != nil {
@@ -21,5 +21,5 @@ func NewMuxWithInsecure(grpcServer *grpc.Server, opts InsecureOptions) (*Mux, er
 	}
 
 	mux := cmux.New(lis)
-	return &Mux{mux: mux, Listener: lis, GrpcServer: grpcServer}, nil
+	return &GrpcWebMux{mux: mux, Listener: lis, GrpcServer: grpcServer}, nil
 }
